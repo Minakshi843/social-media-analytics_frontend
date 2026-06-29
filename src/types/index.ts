@@ -12,11 +12,18 @@ export interface City {
 
 export interface SocialAccount {
   id: number;
-  city: City;
+  cityId: number;
+  cityName: string;
   accountName: string;
+  accountHandle: string;
   accountUrl: string;
   platform: 'INSTAGRAM' | 'FACEBOOK' | 'LINKEDIN' | 'X';
+  connectionStatus: 'NOT_CONNECTED' | 'CONNECTED' | 'TOKEN_EXPIRED' | 'ERROR';
+  accessToken?: string;
+  refreshToken?: string;
+  tokenExpiry?: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Target {
