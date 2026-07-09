@@ -157,7 +157,7 @@ export default function Cities() {
                   <Button
                     size="small"
                     startIcon={<ViewIcon />}
-                    onClick={() => navigate(`/cities/${city.id}`)}
+                    onClick={() => navigate(`/city-profile/${city.id}`)}
                     sx={{ fontWeight: 700 }}
                   >
                     View Details

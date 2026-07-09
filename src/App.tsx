@@ -12,6 +12,7 @@ import CityDetails from './pages/CityDetails';
 import SocialAccounts from './pages/SocialAccounts';
 import Targets from './pages/Targets';
 import Reports from './pages/Reports';
+import CampaignDashboard from './pages/CampaignDashboard';
 
 // Route guard checking for existing local token
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -59,9 +60,12 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="cities" element={<Cities />} />
             <Route path="cities/:id" element={<CityDetails />} />
+            <Route path="city-profile" element={<CityDetails />} />
+            <Route path="city-profile/:id" element={<CityDetails />} />
             <Route path="accounts" element={<SocialAccounts />} />
             <Route path="targets" element={<Targets />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="campaign" element={<CampaignDashboard />} />
             
             {/* Catch-all Redirect */}
             <Route path="*" element={<Navigate to="/" replace />} />

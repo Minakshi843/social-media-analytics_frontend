@@ -17,7 +17,7 @@ export interface SocialAccount {
   accountName: string;
   accountHandle: string;
   accountUrl: string;
-  platform: 'INSTAGRAM' | 'FACEBOOK' | 'LINKEDIN' | 'X';
+  platform: 'INSTAGRAM';
   connectionStatus: 'NOT_CONNECTED' | 'CONNECTED' | 'TOKEN_EXPIRED' | 'ERROR';
   accessToken?: string;
   refreshToken?: string;
@@ -29,7 +29,7 @@ export interface SocialAccount {
 export interface Target {
   id: number;
   city: City;
-  platform: 'INSTAGRAM' | 'FACEBOOK' | 'LINKEDIN' | 'X';
+  platform: 'INSTAGRAM';
   dailyStaticTarget: number;
   dailyCarouselTarget: number;
   dailyReelTarget: number;
@@ -41,7 +41,7 @@ export interface Target {
 export interface Post {
   id: number;
   postId: string;
-  platform: 'INSTAGRAM' | 'FACEBOOK' | 'LINKEDIN' | 'X';
+  platform: 'INSTAGRAM';
   city: City;
   postUrl: string;
   caption: string;

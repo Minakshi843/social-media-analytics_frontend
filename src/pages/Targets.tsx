@@ -138,9 +138,6 @@ export default function Targets() {
 
   const platforms = [
     { name: 'INSTAGRAM', label: 'Instagram', icon: <InstagramIcon sx={{ color: '#e1306c' }} /> },
-    { name: 'FACEBOOK', label: 'Facebook', icon: <FacebookIcon sx={{ color: '#1877f2' }} /> },
-    { name: 'LINKEDIN', label: 'LinkedIn', icon: <LinkedInIcon sx={{ color: '#0a66c2' }} /> },
-    { name: 'X', label: 'X (Twitter)', icon: <TwitterIcon sx={{ color: '#1da1f2' }} /> },
   ];
 
   return (

@@ -205,7 +205,10 @@ export default function SocialAccounts() {
 
   const handleOAuthConnect = (platform: string, cityId: number) => {
     // Redirect browser to spring boot authorize callback
-    const authorizeUrl = `http://localhost:8080/api/oauth/${platform.toLowerCase()}/authorize?cityId=${cityId}`;
+    const apiBaseUrl = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') 
+      : 'http://localhost:8080';
+    const authorizeUrl = `${apiBaseUrl}/api/oauth/${platform.toLowerCase()}/authorize?cityId=${cityId}`;
     window.location.href = authorizeUrl;
   };
 
@@ -355,9 +358,6 @@ export default function SocialAccounts() {
               >
                 <MenuItem value="ALL">All Platforms</MenuItem>
                 <MenuItem value="INSTAGRAM">Instagram</MenuItem>
-                <MenuItem value="FACEBOOK">Facebook</MenuItem>
-                <MenuItem value="LINKEDIN">LinkedIn</MenuItem>
-                <MenuItem value="X">X (Twitter)</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -523,9 +523,6 @@ export default function SocialAccounts() {
                 sx={{ borderRadius: 3 }}
               >
                 <MenuItem value="INSTAGRAM">Instagram</MenuItem>
-                <MenuItem value="FACEBOOK">Facebook</MenuItem>
-                <MenuItem value="LINKEDIN">LinkedIn</MenuItem>
-                <MenuItem value="X">X (Twitter)</MenuItem>
               </Select>
             </FormControl>
 

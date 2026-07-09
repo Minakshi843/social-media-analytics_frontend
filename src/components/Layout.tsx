@@ -31,6 +31,9 @@ import {
   Brightness7 as LightModeIcon,
   Logout as LogoutIcon,
   AccountCircle as UserIcon,
+  Leaderboard as ScoreIcon,
+  Campaign as CampaignIcon,
+  Business as ProfileIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 260;
@@ -69,9 +72,11 @@ export default function Layout({ darkMode, toggleDarkMode }: LayoutProps) {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Cities', icon: <CityIcon />, path: '/cities' },
+    { text: 'City Profile', icon: <ProfileIcon />, path: '/city-profile' },
     { text: 'Social Accounts', icon: <SocialIcon />, path: '/accounts' },
     { text: 'Targets', icon: <TargetIcon />, path: '/targets' },
     { text: 'Reports', icon: <ReportIcon />, path: '/reports' },
+    { text: 'Social Media Campaign', icon: <CampaignIcon />, path: '/campaign' },
   ];
 
   const username = localStorage.getItem('username') || 'Admin';
@@ -103,7 +108,7 @@ export default function Layout({ darkMode, toggleDarkMode }: LayoutProps) {
       <Divider />
       <List sx={{ px: 1.5, py: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
         {menuItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
           return (
             <ListItem key={item.text} disablePadding>
               <ListItemButton

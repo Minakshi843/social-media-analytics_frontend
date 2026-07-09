@@ -16,6 +16,9 @@ import {
   TableBody,
   Paper,
   LinearProgress,
+  FormControl,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   LocationCity as CityIcon,
@@ -41,18 +44,30 @@ import {
   Cell as PieCell,
 } from 'recharts';
 import api from '../services/api';
-import { DashboardStats } from '../types';
+import { DashboardStats, City } from '../types';
 
 export default function Dashboard() {
   const theme = useTheme();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [cities, setCities] = useState<City[]>([]);
+  const [selectedCityId, setSelectedCityId] = useState<number | 'ALL'>('ALL');
 
-  const fetchStats = async () => {
+  const fetchCities = async () => {
+    try {
+      const res = await api.get('/cities');
+      setCities(res.data);
+    } catch (err) {
+      console.error('Failed to load cities for filter:', err);
+    }
+  };
+
+  const fetchStats = async (cityId: number | 'ALL') => {
     try {
       setLoading(true);
-      const res = await api.get('/dashboard/stats');
+      const url = cityId === 'ALL' ? '/dashboard/stats' : `/dashboard/stats?cityId=${cityId}`;
+      const res = await api.get(url);
       setStats(res.data);
     } catch (err) {
       console.error('Failed to load dashboard metrics:', err);
@@ -62,14 +77,21 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchStats();
+    fetchCities();
   }, []);
+
+  useEffect(() => {
+    fetchStats(selectedCityId);
+  }, [selectedCityId]);
 
   const handleGlobalSync = async () => {
     try {
       setSyncing(true);
-      await api.post('/social-accounts/sync-all');
-      await fetchStats();
+      const url = selectedCityId === 'ALL'
+        ? '/social-accounts/sync-all'
+        : `/social-accounts/city/${selectedCityId}/sync`;
+      await api.post(url);
+      await fetchStats(selectedCityId);
     } catch (err) {
       console.error('Manual synchronization failed:', err);
     } finally {
@@ -98,7 +120,7 @@ export default function Dashboard() {
     dailyTrends: []
   };
 
-  const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#3b82f6'];
+  const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6'];
 
   const cardData = [
     { title: 'Total Cities', value: data.totalCities, icon: <CityIcon />, color: 'primary.main' },
@@ -111,7 +133,7 @@ export default function Dashboard() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {/* Header and Manual Sync */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5 }}>
             Executive Dashboard
@@ -120,14 +142,31 @@ export default function Dashboard() {
             Pre-aggregated social media analytics and target metrics.
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={syncing ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <RefreshIcon />}
-          onClick={handleGlobalSync}
-          disabled={syncing}
-        >
-          {syncing ? 'Syncing...' : 'Sync Channels'}
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 220 }}>
+            <Select
+              value={selectedCityId}
+              onChange={(e) => setSelectedCityId(e.target.value as number | 'ALL')}
+              sx={{ borderRadius: 3, fontWeight: 700 }}
+            >
+              <MenuItem value="ALL" sx={{ fontWeight: 600 }}>All Cities (Comparison)</MenuItem>
+              {cities.map((c) => (
+                <MenuItem key={c.id} value={c.id} sx={{ fontWeight: 600 }}>
+                  {c.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button
+            variant="contained"
+            startIcon={syncing ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <RefreshIcon />}
+            onClick={handleGlobalSync}
+            disabled={syncing}
+            sx={{ borderRadius: 3, textTransform: 'none', px: 3 }}
+          >
+            {syncing ? 'Syncing...' : 'Sync Channels'}
+          </Button>
+        </Box>
       </Box>
 
       {/* Metric Cards Row */}
@@ -186,7 +225,7 @@ export default function Dashboard() {
           <Card sx={{ height: '100%' }}>
             <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                Platform Shares
+                {selectedCityId === 'ALL' ? 'City Post Shares' : 'Content Type Shares'}
               </Typography>
               <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 260 }}>
                 <ResponsiveContainer width="100%" height="100%">
