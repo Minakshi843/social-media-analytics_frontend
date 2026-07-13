@@ -44,12 +44,15 @@ export default function Login() {
 
     try {
       const response = await api.post('/auth/login', { username, password });
-      const { token, role, email } = response.data;
+      const { token, role, email, canAddCity, canConnectAccounts, canUpdateTargets } = response.data;
       
       localStorage.setItem('token', token);
       localStorage.setItem('username', response.data.username);
       localStorage.setItem('role', role);
       localStorage.setItem('email', email || '');
+      localStorage.setItem('canAddCity', String(canAddCity !== false));
+      localStorage.setItem('canConnectAccounts', String(canConnectAccounts !== false));
+      localStorage.setItem('canUpdateTargets', String(canUpdateTargets !== false));
 
       navigate('/');
     } catch (err: any) {

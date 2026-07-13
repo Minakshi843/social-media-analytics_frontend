@@ -22,6 +22,7 @@ import {
 import {
   Search as SearchIcon,
   Refresh as RefreshIcon,
+  Download as DownloadIcon,
 } from '@mui/icons-material';
 import api from '../services/api';
 
@@ -29,6 +30,7 @@ import api from '../services/api';
 interface City {
   id: number;
   name: string;
+  participantName?: string;
   createdAt: string;
 }
 
@@ -135,6 +137,45 @@ export default function CampaignDashboard() {
     }
   };
 
+  const handleDownloadCSV = () => {
+    const headers = [
+      'ULB', 'Participant', 'Starting Followers', 'Ending Followers',
+      'Follower Growth', 'Total Reach', 'Total Engagement', 'Total Posts',
+      'Total Reels', 'Reels >10K Views', 'MoHUA Shared? (Y/N)',
+      'Post Caption Missing', 'Collaboration Posts', 'Wrong Segregation? (Y/N)'
+    ];
+
+    const csvRows = [
+      headers.join(','),
+      ...filteredRows.map(row => [
+        `"${row.ulb.replace(/"/g, '""')}"`,
+        `"${row.participant.replace(/"/g, '""')}"`,
+        row.startingFollowers,
+        row.endingFollowers,
+        row.followerGrowth,
+        row.totalReach,
+        row.totalEngagement,
+        row.totalPosts,
+        row.totalReels,
+        row.reelsOver10k,
+        row.mohuaShared,
+        row.noPostCaptionMissing,
+        row.noOfCollaboration,
+        row.wrongSegregation
+      ].join(','))
+    ];
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Campaign_Report_${datePreset}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -178,9 +219,9 @@ export default function CampaignDashboard() {
         return;
       }
 
-      const participantName = cityAccounts
+      const participantName = city.participantName || cityAccounts
         .map((a) => `${a.accountName} (@${a.accountHandle || a.platform.toLowerCase()})`)
-        .join(', ');
+        .join(', ') || 'Unknown Participant';
 
       // Get live posts from database and apply date filtering
       let cityPosts = allPosts[city.id] || [];
@@ -291,8 +332,19 @@ export default function CampaignDashboard() {
             startIcon={refreshing ? <CircularProgress size={20} /> : <RefreshIcon />}
             onClick={handleSyncAll}
             disabled={loading || refreshing}
+            sx={{ borderRadius: 3, textTransform: 'none', px: 2.5 }}
           >
             {refreshing ? 'Syncing...' : 'Sync Profiles'}
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<DownloadIcon />}
+            onClick={handleDownloadCSV}
+            disabled={loading || filteredRows.length === 0}
+            sx={{ borderRadius: 3, textTransform: 'none', px: 2.5 }}
+          >
+            Download Report
           </Button>
         </Box>
       </Box>

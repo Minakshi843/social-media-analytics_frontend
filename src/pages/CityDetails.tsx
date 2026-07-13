@@ -53,7 +53,8 @@ export default function CityDetails() {
   const [citiesList, setCitiesList] = useState<City[]>([]);
   
   // Filtering States
-  const [datePreset, setDatePreset] = useState<'ALL' | 'TODAY' | '7_DAYS' | '30_DAYS' | 'CUSTOM'>('ALL');
+  const [datePreset, setDatePreset] = useState<'ALL' | 'TODAY' | '7_DAYS' | '30_DAYS' | '60_DAYS' | '90_DAYS' | 'MONTH' | 'CUSTOM'>('ALL');
+  const [selectedMonth, setSelectedMonth] = useState<string>('JUNE 2026');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
   const [postTypeFilter, setPostTypeFilter] = useState<'ALL' | 'STATIC' | 'CAROUSEL' | 'REEL'>('ALL');
@@ -160,6 +161,14 @@ export default function CityDetails() {
     const d = new Date();
     d.setDate(d.getDate() - 30);
     activeStart = d.toISOString().split('T')[0];
+  } else if (datePreset === '60_DAYS') {
+    const d = new Date();
+    d.setDate(d.getDate() - 60);
+    activeStart = d.toISOString().split('T')[0];
+  } else if (datePreset === '90_DAYS') {
+    const d = new Date();
+    d.setDate(d.getDate() - 90);
+    activeStart = d.toISOString().split('T')[0];
   } else if (datePreset === 'CUSTOM') {
     activeStart = customStartDate;
     activeEnd = customEndDate;
@@ -169,6 +178,11 @@ export default function CityDetails() {
   const activePosts = posts.filter(p => {
     if (p.platform !== activeTab) return false;
     if (postTypeFilter !== 'ALL' && p.postType !== postTypeFilter) return false;
+    if (datePreset === 'MONTH') {
+      const date = new Date(p.postDate);
+      const mStr = date.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+      return mStr.includes(selectedMonth);
+    }
     if (activeStart && p.postDate < activeStart) return false;
     if (activeEnd && p.postDate > activeEnd) return false;
     return true;
@@ -187,6 +201,48 @@ export default function CityDetails() {
 
   const achievementRate = targetDaily > 0 ? Math.min(100, (postsToday / targetDaily) * 100) : (postsToday > 0 ? 100 : 0);
   const pendingCount = Math.max(0, targetDaily - postsToday);
+
+  const startingFollowersMap: Record<string, number> = {
+    'PCMC': 3,
+    'PUNE': 100,
+    'MCG': 4,
+    'PATNA': 13,
+    'NAGPUR': 13,
+    'LUCKNOW': 100,
+    'JAIPUR': 7,
+  };
+
+  const getFollowersStats = () => {
+    if (activeAccount) {
+      return {
+        followers: activeAccount.followersCount || 0,
+        following: activeAccount.followingCount || 0
+      };
+    }
+    if (!city) return { followers: 100, following: 50 };
+    const cityNameKey = city.name.toUpperCase();
+    const startingFollowers = startingFollowersMap[cityNameKey] || 100;
+    
+    // Calculate growth based on activePosts
+    const totalPosts = activePosts.length;
+    const totalReach = activePosts.reduce((acc, p) => acc + (p.reach || 0), 0);
+    const followerGrowth = totalPosts * 12 + Math.floor(totalReach * 0.05);
+    const currentFollowers = startingFollowers + followerGrowth;
+    
+    // Mock following count
+    const followingMap: Record<string, number> = {
+      'PCMC': 84,
+      'PUNE': 112,
+      'MCG': 95,
+      'PATNA': 64,
+      'NAGPUR': 121,
+      'LUCKNOW': 105,
+      'JAIPUR': 88,
+    };
+    const following = followingMap[cityNameKey] || 75;
+    
+    return { followers: currentFollowers, following };
+  };
 
   const platforms = [
     { label: 'Instagram', value: 'INSTAGRAM' },
@@ -221,6 +277,11 @@ export default function CityDetails() {
                 </FormControl>
               )}
             </Box>
+            {city.participantName && (
+              <Typography variant="subtitle1" color="success.main" sx={{ fontWeight: 700, mt: 0.5 }}>
+                Social Media Expert: {city.participantName}
+              </Typography>
+            )}
             <Typography variant="body2" color="text.secondary">
               Platform-wise performance details, target metrics, and synchronized feeds.
             </Typography>
@@ -302,6 +363,9 @@ export default function CityDetails() {
                     <MenuItem value="TODAY" sx={{ fontWeight: 600 }}>Today</MenuItem>
                     <MenuItem value="7_DAYS" sx={{ fontWeight: 600 }}>Last 7 Days</MenuItem>
                     <MenuItem value="30_DAYS" sx={{ fontWeight: 600 }}>Last 30 Days</MenuItem>
+                    <MenuItem value="60_DAYS" sx={{ fontWeight: 600 }}>Last 60 Days</MenuItem>
+                    <MenuItem value="90_DAYS" sx={{ fontWeight: 600 }}>Last 90 Days</MenuItem>
+                    <MenuItem value="MONTH" sx={{ fontWeight: 600 }}>Filter by Month</MenuItem>
                     <MenuItem value="CUSTOM" sx={{ fontWeight: 600 }}>Custom Date Range</MenuItem>
                   </Select>
                 </FormControl>
@@ -338,6 +402,24 @@ export default function CityDetails() {
                     </FormControl>
                   </Grid>
                 </>
+              )}
+
+              {datePreset === 'MONTH' && (
+                <Grid item xs={12} sm={4} md={3}>
+                  <FormControl fullWidth size="small">
+                    <Typography variant="caption" sx={{ fontWeight: 800, mb: 0.75, display: 'block', color: 'text.secondary' }}>
+                      SELECT MONTH
+                    </Typography>
+                    <Select
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                      sx={{ borderRadius: 2.5, fontWeight: 700 }}
+                    >
+                      <MenuItem value="JUNE 2026" sx={{ fontWeight: 600 }}>June 2026</MenuItem>
+                      <MenuItem value="MAY 2026" sx={{ fontWeight: 600 }}>May 2026</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
               )}
             </Grid>
           </Card>
@@ -397,9 +479,28 @@ export default function CityDetails() {
           {/* Synchronized Posts Table */}
           <Card>
             <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                Synchronized Feed List
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', mb: 3, gap: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  Synchronized Feed List
+                </Typography>
+                {activeAccount && (
+                  <Box sx={{ display: 'flex', gap: 3, bgcolor: 'action.hover', px: 3, py: 1, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, display: 'block' }}>FOLLOWERS</Typography>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                        {getFollowersStats().followers.toLocaleString()}
+                      </Typography>
+                    </Box>
+                    <Divider orientation="vertical" flexItem />
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, display: 'block' }}>FOLLOWING</Typography>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                        {getFollowersStats().following.toLocaleString()}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+              </Box>
               {activePosts.length === 0 ? (
                 <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
                   No posts synchronized. Click "Sync City" to run a feed fetcher.
@@ -409,21 +510,30 @@ export default function CityDetails() {
                   <Table>
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 700 }}>Post ID</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Type</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Expert Name</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Post Date</TableCell>
                         <TableCell sx={{ fontWeight: 700 }}>Caption</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Type</TableCell>
                         <TableCell sx={{ fontWeight: 700 }} align="right">Likes</TableCell>
                         <TableCell sx={{ fontWeight: 700 }} align="right">Comments</TableCell>
                         <TableCell sx={{ fontWeight: 700 }} align="right">Reach</TableCell>
                         <TableCell sx={{ fontWeight: 700 }} align="right">Impressions</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Published At</TableCell>
                         <TableCell sx={{ fontWeight: 700 }} align="center">Link</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {activePosts.map((post) => (
                         <TableRow key={post.id} hover>
-                          <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{post.postId}</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
+                            {city.participantName || 'Unknown Expert'}
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>{post.postDate}</Typography>
+                            <Typography variant="caption" color="text.secondary">{post.postTime}</Typography>
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {post.caption}
+                          </TableCell>
                           <TableCell>
                             <Chip
                               label={post.postType}
@@ -431,9 +541,6 @@ export default function CityDetails() {
                               color={post.postType === 'REEL' ? 'success' : post.postType === 'CAROUSEL' ? 'secondary' : 'primary'}
                               sx={{ fontWeight: 600 }}
                             />
-                          </TableCell>
-                          <TableCell sx={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {post.caption}
                           </TableCell>
                           <TableCell align="right">
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
@@ -454,10 +561,6 @@ export default function CityDetails() {
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
                               <ImpressionsIcon sx={{ fontSize: 14, color: 'text.secondary' }} /> {post.impressions}
                             </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">{post.postDate}</Typography>
-                            <Typography variant="caption" color="text.secondary">{post.postTime}</Typography>
                           </TableCell>
                           <TableCell align="center">
                             <Tooltip title="View Original Post">

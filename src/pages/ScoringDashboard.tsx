@@ -329,7 +329,7 @@ export default function ScoringDashboard() {
       let weeklyInsights = fallback.weeklyInsights || 'Y';
       let proofRemarks = fallback.proofRemarks || '';
       
-      const participantName = fallback.participant || 'Unknown Participant';
+      const participantName = liveCity?.participantName || fallback.participant || 'Unknown Participant';
 
       // Override values if simulation mode is active for this ULB
       if (simulationMode && ulbName.toLowerCase() === simulatedULB.toLowerCase()) {

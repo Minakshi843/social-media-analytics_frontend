@@ -69,19 +69,19 @@ export default function Layout({ darkMode, toggleDarkMode }: LayoutProps) {
     navigate('/login');
   };
 
+  const role = localStorage.getItem('role') || 'ROLE_ADMIN';
+  const username = localStorage.getItem('username') || 'Admin';
+  const email = localStorage.getItem('email') || '';
+
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Cities', icon: <CityIcon />, path: '/cities' },
-    { text: 'City Profile', icon: <ProfileIcon />, path: '/city-profile' },
+    { text: 'Cities Configuration', icon: <CityIcon />, path: '/cities' },
     { text: 'Social Accounts', icon: <SocialIcon />, path: '/accounts' },
-    { text: 'Targets', icon: <TargetIcon />, path: '/targets' },
-    { text: 'Reports', icon: <ReportIcon />, path: '/reports' },
+    { text: 'City Profile', icon: <ProfileIcon />, path: '/city-profile' },
+    { text: 'Daily Tracker', icon: <ScoreIcon />, path: '/daily_tracker' },
     { text: 'Social Media Campaign', icon: <CampaignIcon />, path: '/campaign' },
+    ...(role === 'ROLE_SUPERADMIN' ? [{ text: 'User Management', icon: <SettingsIcon />, path: '/users' }] : []),
   ];
-
-  const username = localStorage.getItem('username') || 'Admin';
-  const role = localStorage.getItem('role') || 'ROLE_ADMIN';
-  const email = localStorage.getItem('email') || '';
 
   const drawerContent = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

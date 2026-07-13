@@ -2,11 +2,16 @@ export interface User {
   id: number;
   username: string;
   role: string;
+  email?: string;
+  canAddCity?: boolean;
+  canConnectAccounts?: boolean;
+  canUpdateTargets?: boolean;
 }
 
 export interface City {
   id: number;
   name: string;
+  participantName?: string;
   createdAt?: string;
 }
 
@@ -22,6 +27,8 @@ export interface SocialAccount {
   accessToken?: string;
   refreshToken?: string;
   tokenExpiry?: string;
+  followersCount?: number;
+  followingCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -52,6 +59,8 @@ export interface Post {
   comments: number;
   reach: number;
   impressions: number;
+  shares?: number;
+  collaborationsCount?: number;
 }
 
 export interface Analytics {
