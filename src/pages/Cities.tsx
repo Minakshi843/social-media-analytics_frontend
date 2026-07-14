@@ -69,6 +69,11 @@ export default function Cities() {
     fetchCities();
   }, []);
 
+  // Automatically calculate total daily goal as the sum of Reels, Carousel, and Static targets
+  useEffect(() => {
+    setDailyPostTarget(dailyReelTarget + dailyCarouselTarget + dailyStaticTarget);
+  }, [dailyReelTarget, dailyCarouselTarget, dailyStaticTarget]);
+
   const handleOpen = (city: City | null = null) => {
     if (city) {
       setEditingCity(city);
@@ -304,7 +309,7 @@ export default function Cities() {
               variant="outlined"
               value={cityName}
               onChange={(e) => setCityName(e.target.value)}
-              disabled={actionLoading || userRole !== 'ROLE_SUPERADMIN'}
+              disabled={actionLoading || !canAddCity}
               autoFocus
               sx={{
                 '& .MuiOutlinedInput-root': {
@@ -319,7 +324,7 @@ export default function Cities() {
               variant="outlined"
               value={participantName}
               onChange={(e) => setParticipantName(e.target.value)}
-              disabled={actionLoading || userRole !== 'ROLE_SUPERADMIN'}
+              disabled={actionLoading || !canAddCity}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 3,
@@ -370,11 +375,16 @@ export default function Cities() {
                 <TextField
                   fullWidth
                   type="number"
-                  label="Daily Total Goal"
+                  label="Daily Total Goal (Auto)"
                   value={dailyPostTarget}
-                  onChange={(e) => setDailyPostTarget(parseInt(e.target.value) || 0)}
-                  disabled={actionLoading || !canUpdateTargets}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+                  InputProps={{ readOnly: true }}
+                  disabled={actionLoading}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': { borderRadius: 3 },
+                    '& .MuiInputBase-input.Mui-disabled': {
+                      WebkitTextFillColor: 'rgba(0, 0, 0, 0.6)'
+                    }
+                  }}
                 />
               </Grid>
             </Grid>
@@ -386,7 +396,7 @@ export default function Cities() {
             <Button
               type="submit"
               variant="contained"
-              disabled={actionLoading || (userRole !== 'ROLE_SUPERADMIN' && !canUpdateTargets)}
+              disabled={actionLoading || (editingCity ? (!canAddCity && !canUpdateTargets) : !canAddCity)}
               startIcon={actionLoading ? <CircularProgress size={16} /> : null}
             >
               {editingCity ? 'Save' : 'Create'}
