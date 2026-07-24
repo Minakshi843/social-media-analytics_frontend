@@ -193,14 +193,51 @@ export default function CityDetails() {
   const carouselCount = activePosts.filter(p => p.postType === 'CAROUSEL').length;
   const reelCount = activePosts.filter(p => p.postType === 'REEL').length;
 
+  // Filter posts in the selected period (regardless of postTypeFilter)
+  const postsInPeriod = posts.filter(p => {
+    if (p.platform !== activeTab) return false;
+    if (datePreset === 'MONTH') {
+      const date = new Date(p.postDate);
+      const mStr = date.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+      return mStr.includes(selectedMonth);
+    }
+    if (activeStart && p.postDate < activeStart) return false;
+    if (activeEnd && p.postDate > activeEnd) return false;
+    return true;
+  });
+
   const targetDaily = activeTarget.dailyPostTarget;
   
-  // To evaluate daily achievement, calculate posts today
-  const todayStr = new Date().toISOString().split('T')[0];
-  const postsToday = activePosts.filter(p => p.postDate === todayStr).length;
+  // Calculate total target for the selected period
+  let totalDays = 1;
+  if (datePreset === '7_DAYS') totalDays = 7;
+  else if (datePreset === '30_DAYS') totalDays = 30;
+  else if (datePreset === '60_DAYS') totalDays = 60;
+  else if (datePreset === '90_DAYS') totalDays = 90;
+  else if (datePreset === 'MONTH') totalDays = 30; // standard month length
+  else if (datePreset === 'CUSTOM') {
+    if (customStartDate && customEndDate) {
+      const start = new Date(customStartDate);
+      const end = new Date(customEndDate);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    }
+  } else if (datePreset === 'ALL') {
+    if (postsInPeriod.length > 0) {
+      const dates = postsInPeriod.map(p => new Date(p.postDate).getTime());
+      const minDate = Math.min(...dates);
+      const maxDate = new Date().getTime(); // up to today
+      const diffTime = Math.abs(maxDate - minDate);
+      totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    }
+  }
 
-  const achievementRate = targetDaily > 0 ? Math.min(100, (postsToday / targetDaily) * 100) : (postsToday > 0 ? 100 : 0);
-  const pendingCount = Math.max(0, targetDaily - postsToday);
+  const targetForPeriod = targetDaily * totalDays;
+  const actualPostsForPeriod = postsInPeriod.length;
+  const achievementRate = targetForPeriod > 0 
+    ? Math.min(100, (actualPostsForPeriod / targetForPeriod) * 100) 
+    : (actualPostsForPeriod > 0 ? 100 : 0);
+  const pendingCount = Math.max(0, targetForPeriod - actualPostsForPeriod);
 
   const startingFollowersMap: Record<string, number> = {
     'PCMC': 3,
@@ -466,7 +503,7 @@ export default function CityDetails() {
               <Card>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>
-                    Achievement Rate / Pending Today
+                    {datePreset === 'TODAY' ? 'Achievement Rate / Pending Today' : 'Achievement Rate / Pending (Period)'}
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 800 }}>
                     {achievementRate.toFixed(0)}% <span style={{ fontSize: '1rem', fontWeight: 500, color: '#f43f5e' }}>({pendingCount} pending)</span>
